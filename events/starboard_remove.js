@@ -5,6 +5,8 @@ const logger = require('../utility/logger.js');
 
 const { getTrueCount, updateStarboard, removeFromStarboard } = require('../utility/starboard.js');
 
+const allowed_channels = [config.generalID]
+
 module.exports = {
   name: Events.MessageReactionRemove,
   once: false,
