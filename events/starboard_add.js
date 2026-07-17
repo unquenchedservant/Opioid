@@ -12,7 +12,7 @@ module.exports = {
   name: Events.MessageReactionAdd,
   once: false,
   async execute(payload) {
-    if (payload.emoji.name == '⭐' && (isDev() || allowed_channels.includes(payload.channelId))) {
+    if (payload.emoji.name == '⭐' && (isDev() || allowed_channels.includes(payload.message.channelId))) {
       const message = await payload.message.fetch();
       const trueCount = await getTrueCount(message);
 
