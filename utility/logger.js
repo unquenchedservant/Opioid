@@ -6,7 +6,7 @@ const { isDev } = require('./environment');
 class Logger {
   constructor() {
     const fileName = isDev() ? 'opioid-dev.log' : 'opioid.log';
-    const logDir = process.env.LOG_DIR || '/mnt/logs';
+    const logDir = process.env.LOG_DIR || './logs';
     this.logFile = path.join(logDir, fileName);
     this.queue = [];
     this.isWriting = false;
