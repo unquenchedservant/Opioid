@@ -35,6 +35,6 @@ module.exports = {
 
     scheduler.scheduleDaily(async () => {
       await handleBirthday(client);
-    }, '0 8 * * *');
+    }, '30 19 * * *');
   },
 };
