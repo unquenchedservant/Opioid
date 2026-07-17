@@ -1,9 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
-const { starboardSettingsDB, starboardDB } = require('../db/starboard');
+const { starboardDB } = require('../db/starboard');
 const config = require('../utility/config');
 const { isDev } = require('../utility/environment');
 const logger = require('./logger');
 
+
+// Used to have a "Modboard" so that's why this is called "True Count". It's counting how many stars outside of bots and the author of the message.
 async function getTrueCount(message) {
   let trueCount = 0;
   for (const reaction of message.reactions.cache.values()) {
@@ -43,6 +45,7 @@ async function removeFromStarboard(message, starboardChannel) {
   starboardDB.remove(message.id);
 }
 
+// I reverse engineered this from some other bot (Randy)
 async function createEmbed(message, count) {
   const author = message.author;
   const authorName = author.tag;

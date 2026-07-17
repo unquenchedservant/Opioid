@@ -7,7 +7,7 @@ function isDev(){
 }
 
 function validateEnv() {
-    const required = ['DISCORD_TOKEN', 'CLIENT_ID', 'GUILD_ID'];
+    const required = ['DISCORD_TOKEN', 'CLIENT_ID', 'GUILD_ID']; // Any other required env variables can be added here.
     const missing = required.filter((key) => !process.env[key]);
     if (missing.length > 0) {
         throw new Error(`Missing required environment variables: ${missing.join(', ')}`);

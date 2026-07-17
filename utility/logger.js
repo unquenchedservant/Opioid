@@ -1,3 +1,4 @@
+// This exists to standardize the logging across the board. 
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');

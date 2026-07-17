@@ -123,51 +123,7 @@ class StarboardDB {
   }
 }
 
-class ModboardDB {
-  constructor() {
-    this.create();
-  }
-  async create() {
-    logger.info('Checking/creating modboard table');
-    await db.execute(`CREATE TABLE IF NOT EXISTS modboard
-            (MSGID TEXT NOT NULL,
-            MODBOARDMSGID TEXT NOT NULL)`);
-  }
-
-  async add(msgID, modboardMsgID) {
-    logger.info(`Adding msg ID #${msgID} with modboard msg ID #${modboardMsgID} to modboard table`);
-    await db.execute('INSERT INTO modboard (MSGID, MODBOARDMSGID) VALUES (?, ?)', [msgID, modboardMsgID]);
-  }
-
-  async check(msgID) {
-    logger.info(`Checking if msg ID #${msgID} is on modboard table`);
-    const data = await db.execute('SELECT * FROM modboard WHERE MSGID=?', [msgID]);
-    return db.checkLen(data);
-  }
-
-  async get(msgID) {
-    logger.info(`Getting msg ID #${msgID} from modboard table`);
-    const data = await db.execute('SELECT * FROM modboard WHERE MSGID=?', [msgID]);
-    return data[0].MODBOARDMSGID;
-  }
-
-  async update(msgID, modboardMsgID) {
-    logger.info(`Updating modboard msg ID to #${modboardMsgID} for msg ID #${msgID} on the modboard table`);
-    await db.execute('UPDATE modboard SET MODBOARDMSGID=? WHERE MSGID=?', [modboardMsgID, msgID]);
-  }
-
-  async remove(msgID) {
-    logger.info(`Removing msg ID #${msgID} from modboard table`);
-    await db.execute('DELETE FROM modboard WHERE MSGID=?', [msgID]);
-  }
-
-  async drop() {
-    logger.warn('modboard table dropped');
-    await db.execute('DROP TABLE modboard');
-  }
-}
 module.exports = {
   starboardDB: new StarboardDB(),
-  modboardDB: new ModboardDB(),
   starboardSettingsDB: new StarboardSettingsDB(),
 };

@@ -2,6 +2,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const logger = require('../utility/logger');
 
+
+// This class wraps the sqlite3 database connection and provides methods for executing queries and managing the connection. Should protect against SQL injection by using parameterized queries. 
+// There should be no reason to make changes to this file. Any database table should have it's own file (or be shared in a file related to that table. see starboard.js)
 class Database {
   constructor() {
     this.db = null;
