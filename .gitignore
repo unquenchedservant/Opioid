@@ -2,3 +2,4 @@
 node_modules/
 logs/
 opioid.db*
+package-lock.json
