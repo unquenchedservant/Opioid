@@ -1,3 +1,5 @@
+// I created this so that any new slash commands on updates are registered with the server. Always a good idea to run this after making changes. 
+// Build pipeline will include running this first. 
 const { REST, Routes } = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('node:fs');

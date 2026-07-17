@@ -1,5 +1,5 @@
 const { validateEnv } = require('./utility/environment');
-validateEnv();
+validateEnv(); // If env variables are missing, throw an informative error and exit. 
 const fs = require('node:fs');
 const path = require('node:path');
 const db = require('./db/database');
@@ -12,6 +12,9 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const token = process.env.DISCORD_TOKEN;
+
+// Set the intent bits and partials. I forget what partials are used for, tbh. I think it was dealing with edited/deleted/old messages somewhere. 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -27,6 +30,7 @@ const client = new Client({
 
 client.commands = new Collection();
 
+// Load commands from the commands folder/subfolders. New commands should be added to relevant subfolder in commands.
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
@@ -46,6 +50,7 @@ for (const folder of commandFolders) {
   }
 }
 
+// Load events from the events folder. New events should be added to the events folder.
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 

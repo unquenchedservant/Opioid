@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const ENV = process.env.NODE_ENV || 'production';
+const ENV = process.env.NODE_ENV || 'production'; // Default to production if NODE_ENV is not set
 function isDev(){
     return ENV === 'development';
 }
@@ -15,4 +15,4 @@ function validateEnv() {
     }
 }
 
-MediaSourceHandle.exports = { isDev, validateEnv };
+module.exports = { isDev, validateEnv };
