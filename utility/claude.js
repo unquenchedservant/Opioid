@@ -38,6 +38,11 @@ People talk to you by @mentioning you or replying to your messages. Keep in mind
  * @returns {Promise<string>} The assistant's reply.
  */
 async function ask(messages) {
+  // Log every query. The last message is the one that triggered us (already "username: content");
+  // newlines are collapsed so each query stays on a single log line.
+  const query = messages[messages.length - 1].content.replace(/\s*\n\s*/g, ' ');
+  logger.info(`Claude query (${messages.length} msg context): ${query}`);
+
   const response = await client.messages.create({
     model: MODEL,
     // eslint-disable-next-line camelcase -- API wire-format name
