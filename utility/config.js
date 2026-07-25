@@ -13,11 +13,14 @@ const announcementsIDProd = '1527492811145089136';
 const generalIDDev = '365879579887534082';
 const generalIDProd = '1527492381203763422';
 const staffID = '1527501465923620934';
+const feedbackIDProd = '1530429987553808424';
+const feedbackIDDev = '1530430516283572264';
 
 module.exports = {
     guildID: isDev() ? guildIDDev : guildIDProd,
     starboardID: isDev() ? starboardIDDev : starboardIDProd,
     announcementsID: isDev() ? announcementsIDDev : announcementsIDProd,
     generalID: isDev() ? generalIDDev : generalIDProd,
+    feedbackID: isDev() ? feedbackIDDev : feedbackIDProd,
     staffID: staffID
 }
