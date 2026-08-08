@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { topMessagesCountDB } = require('../../db/topMessages');
+const { TOP_MESSAGES_COLOR } = require('../../utility/topMessages');
 const logger = require('../../utility/logger');
 
 const EPISODE_LIMIT = 10;
@@ -27,8 +28,13 @@ module.exports = {
 
     const average = (await topMessagesCountDB.getAllTimeAverageForUser(interaction.guildId, interaction.user.id)).toFixed(1);
 
-    const msg = `Your activity across the last ${episodeCount} episode${episodeCount === 1 ? '' : 's'}: ${count} message${count === 1 ? '' : 's'} (avg ${average}/episode all-time)`;
+    const embed = new EmbedBuilder()
+      .setColor(TOP_MESSAGES_COLOR)
+      .setTitle('📊 Your Activity')
+      .setThumbnail(interaction.user.displayAvatarURL())
+      .setDescription(`Across the last ${episodeCount} episode${episodeCount === 1 ? '' : 's'}, you sent **${count}** message${count === 1 ? '' : 's'}.`)
+      .addFields({ name: 'All-time average', value: `${average} messages/episode`, inline: true });
 
-    await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },
 };

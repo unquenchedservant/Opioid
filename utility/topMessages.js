@@ -47,4 +47,22 @@ function getETPreviousYearMonth(date = new Date()) {
   return `${y}-${String(m).padStart(2, '0')}`;
 }
 
-module.exports = { isTrackingWindow, getETDateString, getETPreviousYearMonth };
+const MONTH_LABEL_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'UTC',
+  month: 'long',
+  year: 'numeric',
+});
+
+// Turns a "YYYY-MM" value (as produced by getETPreviousYearMonth) into a human label,
+// e.g. "2026-07" -> "July 2026". Goes through a UTC noon timestamp so no timezone can
+// shift it to the adjacent month/day -- only the month/year label is ever read back out.
+function getMonthLabel(yearMonth) {
+  const [year, month] = yearMonth.split('-').map(Number);
+  return MONTH_LABEL_FORMATTER.format(new Date(Date.UTC(year, month - 1, 1, 12)));
+}
+
+// Shared brand color for the "top chatters" feature's embeds (nightly/monthly
+// announcements and /activity stats), so they read as one consistent feature.
+const TOP_MESSAGES_COLOR = 0xF5A623;
+
+module.exports = { isTrackingWindow, getETDateString, getETPreviousYearMonth, getMonthLabel, TOP_MESSAGES_COLOR };

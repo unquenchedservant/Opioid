@@ -1,17 +1,24 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 const logger = require('../utility/logger');
 const Scheduler = require('../utility/scheduler');
 const config = require('../utility/config');
-const { getETDateString, getETPreviousYearMonth } = require('../utility/topMessages');
+const { getETDateString, getETPreviousYearMonth, getMonthLabel, TOP_MESSAGES_COLOR } = require('../utility/topMessages');
 const { topMessagesSettingsDB, topMessagesCountDB } = require('../db/topMessages');
 
-function formatLeaderboard(title, rows) {
-  let msg = `${title}\n`;
-  rows.forEach(({ userId, count }, index) => {
-    msg += `${index + 1}. <@${userId}> — ${count} message${count === 1 ? '' : 's'}\n`;
-  });
-  msg += '\nWant to see your own stats over the last 10 episodes? Use `/activity stats`';
-  return msg;
+const MEDALS = ['🥇', '🥈', '🥉'];
+
+function buildLeaderboardEmbed(title, rows) {
+  const description = rows.map(({ userId, count }, index) => {
+    const rank = MEDALS[index] ?? `**${index + 1}.**`;
+    return `${rank} <@${userId}> — ${count} message${count === 1 ? '' : 's'}`;
+  }).join('\n');
+
+  return new EmbedBuilder()
+    .setColor(TOP_MESSAGES_COLOR)
+    .setTitle(title)
+    .setDescription(description)
+    .setFooter({ text: 'Want to see your own stats? Use /activity stats' })
+    .setTimestamp();
 }
 
 async function handleNightlyAnnounce(client) {
@@ -30,21 +37,22 @@ async function handleNightlyAnnounce(client) {
   }
 
   const annCh = await client.channels.fetch(config.announcementsID);
-  await annCh.send({ content: formatLeaderboard('Tonight\'s top chatters:', top) });
+  await annCh.send({ embeds: [buildLeaderboardEmbed('🌙 Tonight\'s Top Chatters', top)] });
 }
 
 async function handleMonthlyAnnounce(client) {
   logger.info('Handling monthly top messages announcement');
 
   const displayCount = await topMessagesSettingsDB.getDisplayCount(config.guildID);
-  const top = await topMessagesCountDB.getTopForMonth(config.guildID, getETPreviousYearMonth(), displayCount);
+  const yearMonth = getETPreviousYearMonth();
+  const top = await topMessagesCountDB.getTopForMonth(config.guildID, yearMonth, displayCount);
   if (top.length === 0) {
     logger.info('No messages tracked last month, skipping monthly top messages announcement');
     return;
   }
 
   const annCh = await client.channels.fetch(config.announcementsID);
-  await annCh.send({ content: formatLeaderboard('This month\'s top chatters:', top) });
+  await annCh.send({ embeds: [buildLeaderboardEmbed(`🏆 ${getMonthLabel(yearMonth)}'s Top Chatters`, top)] });
 }
 
 module.exports = {
