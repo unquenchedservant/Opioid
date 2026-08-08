@@ -61,8 +61,23 @@ function getMonthLabel(yearMonth) {
   return MONTH_LABEL_FORMATTER.format(new Date(Date.UTC(year, month - 1, 1, 12)));
 }
 
+const EPISODE_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'UTC',
+  month: 'short',
+  day: 'numeric',
+});
+
+// Turns a MSGDATE value ("YYYY-MM-DD") into a short display label, e.g. "2026-08-07" ->
+// "Aug 7", for the /activity stats per-episode table. Goes through UTC (not America/New_York)
+// since MSGDATE is already the resolved ET calendar date -- reparsing it in ET could shift
+// it a day depending on the host's clock.
+function formatEpisodeDate(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return EPISODE_DATE_FORMATTER.format(new Date(Date.UTC(year, month - 1, day)));
+}
+
 // Shared brand color for the "top chatters" feature's embeds (nightly/monthly
 // announcements and /activity stats), so they read as one consistent feature.
 const TOP_MESSAGES_COLOR = 0xF5A623;
 
-module.exports = { isTrackingWindow, getETDateString, getETPreviousYearMonth, getMonthLabel, TOP_MESSAGES_COLOR };
+module.exports = { isTrackingWindow, getETDateString, getETPreviousYearMonth, getMonthLabel, formatEpisodeDate, TOP_MESSAGES_COLOR };

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { topMessagesCountDB } = require('../../db/topMessages');
-const { TOP_MESSAGES_COLOR } = require('../../utility/topMessages');
+const { formatEpisodeDate, TOP_MESSAGES_COLOR } = require('../../utility/topMessages');
 const logger = require('../../utility/logger');
 
 const EPISODE_LIMIT = 10;
@@ -19,21 +19,26 @@ module.exports = {
   async execute(interaction) {
     logger.info(`'/activity stats' was called by ${interaction.user.tag}`);
 
-    const { episodeCount, count } = await topMessagesCountDB.getStatsForUser(interaction.guildId, interaction.user.id, EPISODE_LIMIT);
+    const breakdown = await topMessagesCountDB.getEpisodeBreakdownForUser(interaction.guildId, interaction.user.id, EPISODE_LIMIT);
 
-    if (episodeCount === 0) {
+    if (breakdown.length === 0) {
       await interaction.reply({ content: 'No tracked episodes yet.', flags: MessageFlags.Ephemeral });
       return;
     }
 
+    const total = breakdown.reduce((sum, { count }) => sum + count, 0);
     const average = (await topMessagesCountDB.getAllTimeAverageForUser(interaction.guildId, interaction.user.id)).toFixed(1);
 
     const embed = new EmbedBuilder()
       .setColor(TOP_MESSAGES_COLOR)
       .setTitle('📊 Your Activity')
       .setThumbnail(interaction.user.displayAvatarURL())
-      .setDescription(`Across the last ${episodeCount} episode${episodeCount === 1 ? '' : 's'}, you sent **${count}** message${count === 1 ? '' : 's'}.`)
-      .addFields({ name: 'All-time average', value: `${average} messages/episode`, inline: true });
+      .setDescription(`Across your last ${breakdown.length} episode${breakdown.length === 1 ? '' : 's'}, you sent **${total}** message${total === 1 ? '' : 's'} total.`)
+      .addFields(
+        { name: 'Episode', value: breakdown.map(({ date }) => `\`${formatEpisodeDate(date)}\``).join('\n'), inline: true },
+        { name: 'Messages', value: breakdown.map(({ count }) => `\`${count}\``).join('\n'), inline: true },
+        { name: 'All-time average', value: `${average} messages/episode`, inline: false },
+      );
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },

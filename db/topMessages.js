@@ -112,29 +112,29 @@ class TopMessagesCountDB {
     return data.map(row => ({ userId: row.USERID, count: row.TOTAL }));
   }
 
-  // Sums message counts for a single user across the most recent `episodeLimit` tracked nights
-  // (distinct MSGDATE values), not calendar nights -- so a Friday with no messages, or one
-  // that was disabled, just doesn't count as an episode. Returns fewer than episodeLimit
-  // episodes if that many aren't in the database yet.
-  async getStatsForUser(guildId, userId, episodeLimit) {
-    logger.info(`Getting activity stats for user ID #${userId} across the last ${episodeLimit} episodes for guild ID #${guildId}`);
+  // Per-episode message counts for a single user across the most recent `episodeLimit`
+  // tracked nights (distinct MSGDATE values), not calendar nights -- so a Friday with no
+  // messages, or one that was disabled, just doesn't count as an episode. Returns fewer
+  // than episodeLimit rows if that many aren't in the database yet. Includes episodes
+  // where the user posted zero messages, so the breakdown reflects the whole window, not
+  // just the nights they showed up -- rows come back most-recent-first.
+  async getEpisodeBreakdownForUser(guildId, userId, episodeLimit) {
+    logger.info(`Getting per-episode breakdown for user ID #${userId} across the last ${episodeLimit} episodes for guild ID #${guildId}`);
     const dates = await db.execute(`SELECT DISTINCT MSGDATE FROM topmessagecounts
             WHERE GUILDID=? ORDER BY MSGDATE DESC LIMIT ?`, [guildId, episodeLimit]);
 
     if (dates.length === 0) {
-      return { episodeCount: 0, count: 0 };
+      return [];
     }
 
     const dateValues = dates.map(row => row.MSGDATE);
     const placeholders = dateValues.map(() => '?').join(',');
-    const data = await db.execute(`SELECT SUM(MSGCOUNT) AS TOTAL FROM topmessagecounts
+    const data = await db.execute(`SELECT MSGDATE, MSGCOUNT FROM topmessagecounts
             WHERE GUILDID=? AND USERID=? AND MSGDATE IN (${placeholders})`,
     [guildId, userId, ...dateValues]);
 
-    return {
-      episodeCount: dates.length,
-      count: data[0].TOTAL || 0,
-    };
+    const countsByDate = new Map(data.map(row => [row.MSGDATE, row.MSGCOUNT]));
+    return dateValues.map(date => ({ date, count: countsByDate.get(date) || 0 }));
   }
 
   // All-time (not episode-limited) average messages per episode participated in, for one user.

@@ -7,16 +7,22 @@ const { topMessagesSettingsDB, topMessagesCountDB } = require('../db/topMessages
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
+// Rank/User/Messages laid out as three side-by-side inline fields rather than one
+// description string -- Discord embeds don't support real tables, but three inline
+// fields render as columns, with each field's newline-joined value forming the rows.
 function buildLeaderboardEmbed(title, rows) {
-  const description = rows.map(({ userId, count }, index) => {
-    const rank = MEDALS[index] ?? `**${index + 1}.**`;
-    return `${rank} <@${userId}> — ${count} message${count === 1 ? '' : 's'}`;
-  }).join('\n');
+  const rankColumn = rows.map((_, index) => MEDALS[index] ?? `\`#${index + 1}\``).join('\n');
+  const userColumn = rows.map(({ userId }) => `<@${userId}>`).join('\n');
+  const messagesColumn = rows.map(({ count }) => `\`${count}\``).join('\n');
 
   return new EmbedBuilder()
     .setColor(TOP_MESSAGES_COLOR)
     .setTitle(title)
-    .setDescription(description)
+    .addFields(
+      { name: 'Rank', value: rankColumn, inline: true },
+      { name: 'User', value: userColumn, inline: true },
+      { name: 'Messages', value: messagesColumn, inline: true },
+    )
     .setFooter({ text: 'Want to see your own stats? Use /activity stats' })
     .setTimestamp();
 }
