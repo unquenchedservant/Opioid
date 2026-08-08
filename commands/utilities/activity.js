@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { topMessagesCountDB } = require('../../db/topMessages');
 const logger = require('../../utility/logger');
 
@@ -21,15 +21,18 @@ module.exports = {
     const { episodeCount, rows } = await topMessagesCountDB.getStatsAcrossEpisodes(interaction.guildId, EPISODE_LIMIT);
 
     if (episodeCount === 0) {
-      await interaction.reply('No tracked episodes yet.');
+      await interaction.reply({ content: 'No tracked episodes yet.', flags: MessageFlags.Ephemeral });
       return;
     }
 
+    const averages = await topMessagesCountDB.getAllTimeAverages(interaction.guildId);
+
     let msg = `Activity across the last ${episodeCount} episode${episodeCount === 1 ? '' : 's'}:\n`;
     rows.forEach(({ userId, count }, index) => {
-      msg += `${index + 1}. <@${userId}> — ${count} message${count === 1 ? '' : 's'}\n`;
+      const average = averages.get(userId).toFixed(1);
+      msg += `${index + 1}. <@${userId}> — ${count} message${count === 1 ? '' : 's'} (avg ${average}/episode all-time)\n`;
     });
 
-    await interaction.reply(msg);
+    await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
   },
 };

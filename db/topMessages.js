@@ -136,6 +136,14 @@ class TopMessagesCountDB {
       rows: data.map(row => ({ userId: row.USERID, count: row.TOTAL })),
     };
   }
+
+  // All-time (not episode-limited) average messages per episode participated in, per user.
+  async getAllTimeAverages(guildId) {
+    logger.info(`Getting all-time averages for guild ID #${guildId}`);
+    const data = await db.execute(`SELECT USERID, SUM(MSGCOUNT) AS TOTAL, COUNT(DISTINCT MSGDATE) AS EPISODES
+            FROM topmessagecounts WHERE GUILDID=? GROUP BY USERID`, [guildId]);
+    return new Map(data.map(row => [row.USERID, row.TOTAL / row.EPISODES]));
+  }
 }
 
 module.exports = {

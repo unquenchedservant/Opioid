@@ -10,6 +10,7 @@ function formatLeaderboard(title, rows) {
   rows.forEach(({ userId, count }, index) => {
     msg += `${index + 1}. <@${userId}> — ${count} message${count === 1 ? '' : 's'}\n`;
   });
+  msg += '\nWant to see your own stats over the last 10 episodes? Use `/activity stats`';
   return msg;
 }
 
