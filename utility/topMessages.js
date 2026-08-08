@@ -1,0 +1,50 @@
+// Timezone-aware helpers for the Friday/Saturday night "top chatters" feature.
+// All date math goes through America/New_York wall-clock time (via Intl, not local Date
+// getters/setters) so DST transitions and the host server's own timezone can't skew results.
+
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  weekday: 'short',
+  hour: 'numeric',
+  hour12: false,
+});
+
+const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+function getETDateParts(date = new Date()) {
+  return Object.fromEntries(DATE_FORMATTER.formatToParts(date).map(part => [part.type, part.value]));
+}
+
+// Tracking window is 9pm-12am ET on Fridays and Saturdays. Since the window never crosses
+// midnight (it ends exactly at midnight), checking "today is Fri/Sat and hour >= 21" is sufficient.
+function isTrackingWindow(date = new Date()) {
+  const parts = DATE_TIME_FORMATTER.formatToParts(date);
+  const weekday = parts.find(part => part.type === 'weekday').value;
+  const hour = Number(parts.find(part => part.type === 'hour').value);
+  return (weekday === 'Fri' || weekday === 'Sat') && hour >= 21;
+}
+
+function getETDateString(date = new Date()) {
+  const { year, month, day } = getETDateParts(date);
+  return `${year}-${month}-${day}`;
+}
+
+// Used by the monthly announcement, which fires just after midnight ET on the 1st and
+// reports on the month that just ended.
+function getETPreviousYearMonth(date = new Date()) {
+  const { year, month } = getETDateParts(date);
+  let y = Number(year);
+  let m = Number(month) - 1;
+  if (m === 0) {
+    m = 12;
+    y -= 1;
+  }
+  return `${y}-${String(m).padStart(2, '0')}`;
+}
+
+module.exports = { isTrackingWindow, getETDateString, getETPreviousYearMonth };

@@ -7,7 +7,7 @@ class Scheduler {
     this.client = client;
   }
 
-  scheduleDaily(task, time = '0 0 * * *') {
+  scheduleDaily(task, time = '0 0 * * *', options = {}) {
     if (!cron.validate(time)) {
       logger.error(`Invalid cron expression: ${time}`);
       return;
@@ -21,7 +21,7 @@ class Scheduler {
       catch (error) {
         logger.error(`Error in scheduled task: ${error}`);
       }
-    });
+    }, options);
   }
 }
 
