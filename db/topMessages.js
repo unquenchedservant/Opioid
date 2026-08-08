@@ -112,37 +112,37 @@ class TopMessagesCountDB {
     return data.map(row => ({ userId: row.USERID, count: row.TOTAL }));
   }
 
-  // Sums message counts for every user across the most recent `episodeLimit` tracked nights
+  // Sums message counts for a single user across the most recent `episodeLimit` tracked nights
   // (distinct MSGDATE values), not calendar nights -- so a Friday with no messages, or one
   // that was disabled, just doesn't count as an episode. Returns fewer than episodeLimit
   // episodes if that many aren't in the database yet.
-  async getStatsAcrossEpisodes(guildId, episodeLimit) {
-    logger.info(`Getting activity stats across the last ${episodeLimit} episodes for guild ID #${guildId}`);
+  async getStatsForUser(guildId, userId, episodeLimit) {
+    logger.info(`Getting activity stats for user ID #${userId} across the last ${episodeLimit} episodes for guild ID #${guildId}`);
     const dates = await db.execute(`SELECT DISTINCT MSGDATE FROM topmessagecounts
             WHERE GUILDID=? ORDER BY MSGDATE DESC LIMIT ?`, [guildId, episodeLimit]);
 
     if (dates.length === 0) {
-      return { episodeCount: 0, rows: [] };
+      return { episodeCount: 0, count: 0 };
     }
 
     const dateValues = dates.map(row => row.MSGDATE);
     const placeholders = dateValues.map(() => '?').join(',');
-    const data = await db.execute(`SELECT USERID, SUM(MSGCOUNT) AS TOTAL FROM topmessagecounts
-            WHERE GUILDID=? AND MSGDATE IN (${placeholders}) GROUP BY USERID ORDER BY TOTAL DESC`,
-    [guildId, ...dateValues]);
+    const data = await db.execute(`SELECT SUM(MSGCOUNT) AS TOTAL FROM topmessagecounts
+            WHERE GUILDID=? AND USERID=? AND MSGDATE IN (${placeholders})`,
+    [guildId, userId, ...dateValues]);
 
     return {
       episodeCount: dates.length,
-      rows: data.map(row => ({ userId: row.USERID, count: row.TOTAL })),
+      count: data[0].TOTAL || 0,
     };
   }
 
-  // All-time (not episode-limited) average messages per episode participated in, per user.
-  async getAllTimeAverages(guildId) {
-    logger.info(`Getting all-time averages for guild ID #${guildId}`);
-    const data = await db.execute(`SELECT USERID, SUM(MSGCOUNT) AS TOTAL, COUNT(DISTINCT MSGDATE) AS EPISODES
-            FROM topmessagecounts WHERE GUILDID=? GROUP BY USERID`, [guildId]);
-    return new Map(data.map(row => [row.USERID, row.TOTAL / row.EPISODES]));
+  // All-time (not episode-limited) average messages per episode participated in, for one user.
+  async getAllTimeAverageForUser(guildId, userId) {
+    logger.info(`Getting all-time average for user ID #${userId} in guild ID #${guildId}`);
+    const data = await db.execute(`SELECT SUM(MSGCOUNT) AS TOTAL, COUNT(DISTINCT MSGDATE) AS EPISODES
+            FROM topmessagecounts WHERE GUILDID=? AND USERID=?`, [guildId, userId]);
+    return data[0].EPISODES > 0 ? data[0].TOTAL / data[0].EPISODES : 0;
   }
 }
 
