@@ -6,7 +6,7 @@ module.exports = {
   name: Events.MessageReactionAdd,
   once: false,
   async execute(reaction, user) {
-    if (reaction.emoji.name !== '🖕' || user.id !== config.specialUserID) return;
+    if (reaction.emoji.name !== '🖕') return;
 
     try {
       await reaction.message.react('❤️');
