@@ -3,6 +3,7 @@ const logger = require('../utility/logger');
 const config = require('../utility/config');
 
 const GIF_URL = 'https://klipy.com/gifs/steak-69';
+const REPLY_CHANCE = 0.25;
 
 // Word-boundary match so "cowboy", "coward", etc. don't trigger it -- only "cow" on its own.
 const COW_PATTERN = /\bcow\b/i;
@@ -14,6 +15,7 @@ module.exports = {
     if (message.author.bot) return;
     if (message.channelId !== config.generalID) return;
     if (!COW_PATTERN.test(message.content)) return;
+    if (Math.random() >= REPLY_CHANCE) return;
 
     try {
       await message.reply(GIF_URL);
