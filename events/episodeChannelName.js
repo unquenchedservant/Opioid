@@ -37,7 +37,7 @@ module.exports = {
     // Start of the tracking window.
     scheduler.scheduleDaily(async () => {
       await syncChannelName(client);
-    }, '0 21 * * 5,6', { timezone: 'America/New_York' });
+    }, '0 20 * * 5,6', { timezone: 'America/New_York' });
 
     // End of the window -- midnight rolling into Saturday (after Friday's window) or Sunday
     // (after Saturday's window).
