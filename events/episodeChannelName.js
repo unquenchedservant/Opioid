@@ -7,13 +7,17 @@ const { isTrackingWindow } = require('../utility/topMessages');
 const EPISODE_NAME = 'episode-discussion';
 const DEFAULT_NAME = 'general';
 
-// Renames the general channel to reflect whether we're in the Friday/Saturday 9pm-midnight
-// ET tracking window (see utility/topMessages.js#isTrackingWindow). Only calls the Discord
-// API when the name actually needs to change, since channel renames are rate-limited.
+// The channel rename fires an hour ahead of the 9pm message-tracking window (see
+// utility/topMessages.js#isTrackingWindow), so the name flips before the show actually starts.
+const CHANNEL_NAME_START_HOUR = 20;
+
+// Renames the general channel to reflect whether we're in the Friday/Saturday 8pm-midnight
+// ET episode window. Only calls the Discord API when the name actually needs to change,
+// since channel renames are rate-limited.
 async function syncChannelName(client) {
   try {
     const channel = await client.channels.fetch(config.generalID);
-    const targetName = isTrackingWindow() ? EPISODE_NAME : DEFAULT_NAME;
+    const targetName = isTrackingWindow(new Date(), CHANNEL_NAME_START_HOUR) ? EPISODE_NAME : DEFAULT_NAME;
 
     if (channel.name === targetName) return;
 
@@ -34,7 +38,7 @@ module.exports = {
 
     const scheduler = new Scheduler(client);
 
-    // Start of the tracking window.
+    // Start of the episode window -- an hour ahead of message tracking.
     scheduler.scheduleDaily(async () => {
       await syncChannelName(client);
     }, '0 20 * * 5,6', { timezone: 'America/New_York' });

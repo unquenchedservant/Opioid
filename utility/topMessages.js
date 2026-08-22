@@ -21,12 +21,15 @@ function getETDateParts(date = new Date()) {
 }
 
 // Tracking window is 9pm-12am ET on Fridays and Saturdays. Since the window never crosses
-// midnight (it ends exactly at midnight), checking "today is Fri/Sat and hour >= 21" is sufficient.
-function isTrackingWindow(date = new Date()) {
+// midnight (it ends exactly at midnight), checking "today is Fri/Sat and hour >= startHour"
+// is sufficient. startHour defaults to the message-tracking start (9pm) but callers with a
+// differently-timed Fri/Sat window (e.g. the episode channel rename, which fires an hour
+// earlier) can override it rather than re-deriving the weekday/midnight logic themselves.
+function isTrackingWindow(date = new Date(), startHour = 21) {
   const parts = DATE_TIME_FORMATTER.formatToParts(date);
   const weekday = parts.find(part => part.type === 'weekday').value;
   const hour = Number(parts.find(part => part.type === 'hour').value);
-  return (weekday === 'Fri' || weekday === 'Sat') && hour >= 21;
+  return (weekday === 'Fri' || weekday === 'Sat') && hour >= startHour;
 }
 
 function getETDateString(date = new Date()) {
