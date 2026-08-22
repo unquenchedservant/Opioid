@@ -3,6 +3,7 @@ const logger = require('../utility/logger');
 const config = require('../utility/config');
 const { isTrackingWindow, getETDateString } = require('../utility/topMessages');
 const specialGreetingsDB = require('../db/specialGreetings');
+const { topMessagesSettingsDB } = require('../db/topMessages');
 
 const GIF_URL = 'https://klipy.com/gifs/dropout-game-changers';
 
@@ -15,6 +16,8 @@ module.exports = {
     if (!isTrackingWindow()) return;
 
     try {
+      if (!await topMessagesSettingsDB.isEnabled(message.guildId)) return;
+
       const isFirstTonight = await specialGreetingsDB.markGreetedIfFirst(message.guildId, message.author.id, getETDateString());
       if (!isFirstTonight) return;
 

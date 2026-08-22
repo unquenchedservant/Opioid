@@ -4,18 +4,8 @@ const logger = require('../../utility/logger');
 
 const data = new SlashCommandBuilder()
   .setName('topmessages')
-  .setDescription('Controls the Friday/Saturday night top chatters announcement')
+  .setDescription('Configure the top chatters announcements')
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
-  .addSubcommand(subcommand =>
-    subcommand
-      .setName('enable')
-      .setDescription('Enable the top chatters announcement'),
-  )
-  .addSubcommand(subcommand =>
-    subcommand
-      .setName('disable')
-      .setDescription('Disable the top chatters announcement (e.g. no show tonight)'),
-  )
   .addSubcommand(subcommand =>
     subcommand
       .setName('setcount')
@@ -41,12 +31,7 @@ module.exports = {
     const subcommand = interaction.options.getSubcommand();
     logger.info(`'/topmessages ${subcommand}' was called by ${interaction.user.tag}`);
 
-    if (subcommand === 'enable' || subcommand === 'disable') {
-      const enabling = subcommand === 'enable';
-      await topMessagesSettingsDB.setEnabled(interaction.guildId, enabling);
-      await interaction.reply({ content: `Top chatters announcement ${enabling ? 'enabled' : 'disabled'}.`, flags: MessageFlags.Ephemeral });
-    }
-    else if (subcommand === 'setcount') {
+    if (subcommand === 'setcount') {
       const count = interaction.options.getInteger('count');
       await topMessagesSettingsDB.setDisplayCount(interaction.guildId, count);
       await interaction.reply({ content: `Top chatters lists will now show ${count} user${count === 1 ? '' : 's'}.`, flags: MessageFlags.Ephemeral });

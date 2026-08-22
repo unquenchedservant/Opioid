@@ -3,6 +3,7 @@ const logger = require('../utility/logger');
 const Scheduler = require('../utility/scheduler');
 const config = require('../utility/config');
 const { isTrackingWindow } = require('../utility/topMessages');
+const { topMessagesSettingsDB } = require('../db/topMessages');
 
 const EPISODE_NAME = 'episode-discussion';
 const DEFAULT_NAME = 'general';
@@ -12,12 +13,15 @@ const DEFAULT_NAME = 'general';
 const CHANNEL_NAME_START_HOUR = 20;
 
 // Renames the general channel to reflect whether we're in the Friday/Saturday 8pm-midnight
-// ET episode window. Only calls the Discord API when the name actually needs to change,
-// since channel renames are rate-limited.
+// ET episode window, unless tonight's been marked not-live via /live off -- in that case it
+// always resolves to "general", same as if we were outside the window entirely. Only calls
+// the Discord API when the name actually needs to change, since channel renames are rate-limited.
 async function syncChannelName(client) {
   try {
     const channel = await client.channels.fetch(config.generalID);
-    const targetName = isTrackingWindow(new Date(), CHANNEL_NAME_START_HOUR) ? EPISODE_NAME : DEFAULT_NAME;
+    const isLive = await topMessagesSettingsDB.isEnabled(config.guildID);
+    const inWindow = isTrackingWindow(new Date(), CHANNEL_NAME_START_HOUR);
+    const targetName = isLive && inWindow ? EPISODE_NAME : DEFAULT_NAME;
 
     if (channel.name === targetName) return;
 
