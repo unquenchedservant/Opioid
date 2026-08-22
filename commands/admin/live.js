@@ -31,7 +31,7 @@ module.exports = {
     if (subcommand === 'on' || subcommand === 'off') {
       const live = subcommand === 'on';
       await topMessagesSettingsDB.setEnabled(interaction.guildId, live);
-      await interaction.reply({ content: `Live status set to ${live ? 'ON' : 'OFF'}.`, flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: `Live status set to ${live ? 'ON' : 'OFF'}.` });
     }
     else if (subcommand === 'status') {
       const live = await topMessagesSettingsDB.isEnabled(interaction.guildId);
