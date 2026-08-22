@@ -15,7 +15,7 @@ const generalIDProd = '1527492381203763422';
 const staffID = '1527501465923620934';
 const feedbackIDProd = '1530429987553808424';
 const feedbackIDDev = '1530430516283572264';
-// TODO: set this to the actual target user's Discord user ID.
+const specialUserID = '236394260553924608';
 
 module.exports = {
     guildID: isDev() ? guildIDDev : guildIDProd,
@@ -23,5 +23,6 @@ module.exports = {
     announcementsID: isDev() ? announcementsIDDev : announcementsIDProd,
     generalID: isDev() ? generalIDDev : generalIDProd,
     feedbackID: isDev() ? feedbackIDDev : feedbackIDProd,
-    staffID: staffID
+    staffID: staffID,
+    specialUserID: specialUserID
 }
