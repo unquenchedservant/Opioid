@@ -10,7 +10,7 @@
     "start": "node index.js",
     "dev": "NODE_ENV=development node deploy-commands.js && NODE_ENV=development node index.js",
     "deploy": "node deploy-commands.js",
-    "test": "jest"
+    "test": "node --test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",

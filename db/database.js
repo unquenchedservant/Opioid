@@ -13,8 +13,12 @@ class Database {
   async connect() {
     if (this.db) return this.db;
 
+    // DB_PATH lets the test suite point this at an isolated ':memory:' database instead of
+    // the real opioid.db file. Unset in normal operation, so production behavior is unchanged.
+    const filename = process.env.DB_PATH || 'opioid.db';
+
     return new Promise((resolve, reject) => {
-      this.db = new sqlite3.Database('opioid.db', (err) => {
+      this.db = new sqlite3.Database(filename, (err) => {
         if (err) {
           logger.error(`Failed to connect to database: ${err}`);
           reject(err);
