@@ -6,6 +6,7 @@ const specialGreetingsDB = require('../db/specialGreetings');
 const { topMessagesSettingsDB } = require('../db/topMessages');
 
 const GIF_URL = 'https://klipy.com/gifs/dropout-game-changers';
+const REPLY_DELAY_MS = 2000;
 
 module.exports = {
   name: Events.MessageCreate,
@@ -21,6 +22,7 @@ module.exports = {
       const isFirstTonight = await specialGreetingsDB.markGreetedIfFirst(message.guildId, message.author.id, getETDateString());
       if (!isFirstTonight) return;
 
+      await new Promise(resolve => setTimeout(resolve, REPLY_DELAY_MS));
       await message.reply(GIF_URL);
     }
     catch (error) {
