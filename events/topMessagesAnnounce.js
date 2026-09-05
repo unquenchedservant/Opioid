@@ -1,83 +1,69 @@
-const { Events, EmbedBuilder } = require('discord.js');
+const { Events } = require('discord.js');
 const logger = require('../utility/logger');
 const Scheduler = require('../utility/scheduler');
 const config = require('../utility/config');
-const { getETDateString, getETPreviousYearMonth, getMonthLabel, TOP_MESSAGES_COLOR } = require('../utility/topMessages');
+const { getETDateString, getETPreviousYearMonth } = require('../utility/topMessages');
 const { topMessagesSettingsDB, topMessagesCountDB } = require('../db/topMessages');
 
-const MEDALS = ['🥇', '🥈', '🥉'];
-
-// Rank/User/Messages laid out as three side-by-side inline fields rather than one
-// description string -- Discord embeds don't support real tables, but three inline
-// fields render as columns, with each field's newline-joined value forming the rows.
-function buildLeaderboardEmbed(title, rows) {
-  const rankColumn = rows.map((_, index) => MEDALS[index] ?? `\`#${index + 1}\``).join('\n');
-  const userColumn = rows.map(({ userId }) => `<@${userId}>`).join('\n');
-  const messagesColumn = rows.map(({ count }) => `\`${count}\``).join('\n');
-
-  return new EmbedBuilder()
-    .setColor(TOP_MESSAGES_COLOR)
-    .setTitle(title)
-    .addFields(
-      { name: 'Rank', value: rankColumn, inline: true },
-      { name: 'User', value: userColumn, inline: true },
-      { name: 'Messages', value: messagesColumn, inline: true },
-    )
-    .setFooter({ text: 'Want to see your own stats? Use /activity stats' })
-    .setTimestamp();
+function formatLeaderboard(title, rows) {
+let msg = `${title}\n`;
+rows.forEach(({ userId, count }, index) => {
+msg += `${index + 1}. <@${userId}> — ${count} message${count === 1 ? '' : 's'}\n`;
+});
+  msg += '\nWant to see your own stats over the last 10 episodes? Use `/activity stats`';
+return msg;
 }
 
 async function handleNightlyAnnounce(client) {
-  logger.info('Handling nightly top messages announcement');
+logger.info('Handling nightly top messages announcement');
 
-  if (!await topMessagesSettingsDB.isEnabled(config.guildID)) {
-    logger.info('Top messages announcement is disabled, skipping');
-    return;
-  }
+if (!await topMessagesSettingsDB.isEnabled(config.guildID)) {
+logger.info('Top messages announcement is disabled, skipping');
+return;
+}
 
-  const displayCount = await topMessagesSettingsDB.getDisplayCount(config.guildID);
-  const top = await topMessagesCountDB.getTopForDate(config.guildID, getETDateString(), displayCount);
-  if (top.length === 0) {
-    logger.info('No messages tracked tonight, skipping top messages announcement');
-    return;
-  }
+const displayCount = await topMessagesSettingsDB.getDisplayCount(config.guildID);
+const top = await topMessagesCountDB.getTopForDate(config.guildID, getETDateString(), displayCount);
+if (top.length === 0) {
+logger.info('No messages tracked tonight, skipping top messages announcement');
+return;
+}
 
-  const annCh = await client.channels.fetch(config.announcementsID);
-  await annCh.send({ embeds: [buildLeaderboardEmbed('🌙 Tonight\'s Top Chatters', top)] });
+const annCh = await client.channels.fetch(config.announcementsID);
+await annCh.send({ content: formatLeaderboard('Tonight\'s top chatters:', top) });
 }
 
 async function handleMonthlyAnnounce(client) {
-  logger.info('Handling monthly top messages announcement');
+logger.info('Handling monthly top messages announcement');
 
-  const displayCount = await topMessagesSettingsDB.getDisplayCount(config.guildID);
-  const yearMonth = getETPreviousYearMonth();
-  const top = await topMessagesCountDB.getTopForMonth(config.guildID, yearMonth, displayCount);
-  if (top.length === 0) {
-    logger.info('No messages tracked last month, skipping monthly top messages announcement');
-    return;
-  }
+const displayCount = await topMessagesSettingsDB.getDisplayCount(config.guildID);
+const top = await topMessagesCountDB.getTopForMonth(config.guildID, getETPreviousYearMonth(), displayCount);
+if (top.length === 0) {
+logger.info('No messages tracked last month, skipping monthly top messages announcement');
+return;
+}
 
-  const annCh = await client.channels.fetch(config.announcementsID);
-  await annCh.send({ embeds: [buildLeaderboardEmbed(`🏆 ${getMonthLabel(yearMonth)}'s Top Chatters`, top)] });
+const annCh = await client.channels.fetch(config.announcementsID);
+await annCh.send({ content: formatLeaderboard('This month\'s top chatters:', top) });
 }
 
 module.exports = {
-  name: Events.ClientReady,
-  once: true,
-  execute(client) {
-    const scheduler = new Scheduler(client);
+name: Events.ClientReady,
+once: true,
+execute(client) {
+const scheduler = new Scheduler(client);
 
-    // Fires at 11:59pm ET only on Fridays (5) and Saturdays (6) -- the tail end of the
-    // 9pm-12am tracking window from utility/topMessages.js.
-    scheduler.scheduleDaily(async () => {
-      await handleNightlyAnnounce(client);
-    }, '59 23 * * 5,6', { timezone: 'America/New_York' });
+// Fires at 11:59pm ET only on Fridays (5) and Saturdays (6) -- the tail end of the
+// 9pm-12am tracking window from utility/topMessages.js.
+scheduler.scheduleDaily(async () => {
+await handleNightlyAnnounce(client);
+}, '59 23 * * 5,6', { timezone: 'America/New_York' });
 
-    // Fires just after midnight ET on the 1st of each month, reporting on the month that
-    // just ended. Not gated by the enable/disable toggle -- that only suppresses a single
-    // night's tracking/announcement (e.g. "no show tonight"), not the whole feature.
-    scheduler.scheduleDaily(async () => {
-      await handleMonthlyAnnounce(client);
-    }, '5 0 1 * *', { timezone: 'America/New_York' });
-  },
+// Fires just after midnight ET on the 1st of each month, reporting on the month that
+// just ended. Not gated by the enable/disable toggle -- that only suppresses a single
+// night's tracking/announcement (e.g. "no show tonight"), not the whole feature.
+scheduler.scheduleDaily(async () => {
+await handleMonthlyAnnounce(client);
+}, '5 0 1 * *', { timezone: 'America/New_York' });
+},
 };
