@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { topMessagesSettingsDB } = require('../../db/topMessages');
+const { syncStatusChannelName } = require('../../utility/statusChannel');
 const logger = require('../../utility/logger');
 
 const data = new SlashCommandBuilder()
@@ -31,6 +32,7 @@ module.exports = {
     if (subcommand === 'on' || subcommand === 'off') {
       const live = subcommand === 'on';
       await topMessagesSettingsDB.setEnabled(interaction.guildId, live);
+      await syncStatusChannelName(interaction.client);
       await interaction.reply({ content: `Live status set to ${live ? 'ON' : 'OFF'}.` });
     }
     else if (subcommand === 'status') {
