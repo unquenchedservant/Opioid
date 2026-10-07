@@ -43,17 +43,21 @@ const data = new SlashCommandBuilder()
 module.exports = {
     data,
     async execute(interaction) {
-        if (interaction.channelId != config.staffBotCommandID){
-            interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
-            return 0;
-        }
         const member = interaction.options.getMember('user');
         const role = interaction.guild.roles.cache.get(config.vcMuteRoleID)
         if (interaction.options.getSubcommand() === 'add'){
+            if (interaction.channelId != config.staffBotCommandID){
+                interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
+                return 0;
+            }
             logger.info(`'/vcTimeout add' was called by ${interaction.user.tag} on ${member.displayName}`)
             member.roles.add(role)
             interaction.reply({ content: `Successfully timed out ${member.displayName}`})
         }else if (interaction.options.getSubcommand() === 'remove'){
+            if (interaction.channelId != config.staffBotCommandID){
+                interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
+                return 0;
+            }
             logger.info(`'/vcTimeout add' was called by ${interaction.user.tag} on ${member.displayName}`)
             member.roles.remove(role)
             interaction.reply({ content: `Successfully removed ${member.displayName} from timeout`})
