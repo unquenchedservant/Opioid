@@ -60,9 +60,9 @@ module.exports = {
         }else if (interaction.options.getSubcommand() === 'check'){
             logger.info(`'/vcTimeout check' was called by ${interaction.user.tag} on ${member.displayName}`)
             if (member.roles.cache.has(config.vcMuteRoleID)){
-                interaction.reply({ content: `${member.displayName} is timed out`})
+                interaction.reply({ content: `${member.displayName} is timed out`, flags: MessageFlags.Ephemeral})
             } else {
-                interaction.reply({ content: `${member.displayName} is not timed out`})
+                interaction.reply({ content: `${member.displayName} is not timed out`, flags: MessageFlags.Ephemeral})
             }
         }
     },
