@@ -10,8 +10,8 @@ module.exports = {
   name: Events.MessageCreate,
   once: false,
   async execute(message) {
-    if (!config.statusID) return;
-    if (message.channelId !== config.statusID) return;
+    if (!config.modLogs) return;
+    if (message.channelId !== config.modLogs) return;
     if (message.author.id === message.client.user.id) return;
     //if (message.author.id === config.specialUserID) return;
 

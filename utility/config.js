@@ -2,7 +2,6 @@
 
 const { isDev } = require('./environment');
 
-// TODO: Lift dev values to .env file and update environment.js to check for those values if dev. 
 
 const guildIDDev = '365879579887534080';
 const guildIDProd = '1527492380515635220';
@@ -22,6 +21,8 @@ const statusIDDev = '1545861869850460260';
 const statusIDProd = '1545867601878581400';
 const vcMuteRoleIDDev = '1556437929948094564';
 const vcMuteRoleIDProd = '1556335007809933456';
+const modLogsIDProd = '1557810315012476949';
+const modLogsIDDev = '1530746377498525797';
 
 
 module.exports = {
@@ -33,6 +34,7 @@ module.exports = {
     statusID: isDev() ? statusIDDev : statusIDProd,
     vcMuteRoleID: isDev() ? vcMuteRoleIDDev : vcMuteRoleIDProd,
     staffBotCommandID: isDev() ? staffBotCommandIDDev : staffBotCommandIDProd,
-    staffID: staffID,
+    modLogs: isDev() ? modLogsIDDev : modLogsIDProd,
+    staffID: staffID, 
     specialUserID: specialUserID
 }

@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, Embed } = require('discord.js');
 const { starboardDB } = require('../db/starboard');
 const config = require('../utility/config');
 const { isDev } = require('../utility/environment');
@@ -68,10 +68,21 @@ async function createEmbed(message, count) {
   return embed;
 }
 
+function createModLogEmbed(pretext, message, mod, timestamp, avatarURL, imageName) {
+  const embed = new EmbedBuilder()
+    .setAuthor({ name: pretext, iconURL: avatarURL })
+    .setTimestamp(timestamp)
+    .setDescription(message)
+    .setFooter({ text: mod?.tag ?? 'Unknown' });
+  // imageName refers to a file uploaded alongside the embed in the same message
+  if (imageName) embed.setImage(`attachment://${imageName}`);
+  return embed;
+}
 module.exports = {
   getTrueCount,
   addToStarboard,
   updateStarboard,
   removeFromStarboard,
   createEmbed,
+  createModLogEmbed,
 };

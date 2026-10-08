@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, Message } = require('discord.js');
 const logger = require('../../utility/logger');
 const config = require('../../utility/config');
+const { createModLogEmbed } = require('../../utility/starboard');
+
 
 const data = new SlashCommandBuilder()
   .setName('vcto')
@@ -45,28 +47,32 @@ module.exports = {
     async execute(interaction) {
         const member = interaction.options.getMember('user');
         const role = interaction.guild.roles.cache.get(config.vcMuteRoleID)
+        const modLogChannel = await interaction.guild.channels.fetch(config.modLogs);
         if (interaction.options.getSubcommand() === 'add'){
-            if (interaction.channelId != config.staffBotCommandID){
-                interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
-                return 0;
-            }
+            // if (interaction.channelId != config.staffBotCommandID){
+            //     interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
+            //     return 0;
+            // }
             logger.info(`'/vcTimeout add' was called by ${interaction.user.tag} on ${member.displayName}`)
-            member.roles.add(role)
-            interaction.reply({ content: `Successfully timed out ${member.displayName}`})
+            member.roles.add(role)        
+            await modLogChannel.send({ embeds: [createModLogEmbed("Voice Chat", `${member.displayName} has been timed out`, interaction.user, interaction.createdTimestamp, member.displayAvatarURL())]})
+            await interaction.reply({ content: `Successfully timed out ${member.displayName}`, flags:MessageFlags.Ephemeral})
         }else if (interaction.options.getSubcommand() === 'remove'){
-            if (interaction.channelId != config.staffBotCommandID){
-                interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
-                return 0;
-            }
+            // if (interaction.channelId != config.staffBotCommandID){
+            //     interaction.reply({ content: 'Please use this command in the staff #bot-cmds channel', flags: MessageFlags.Ephemeral });
+            //     return 0;
+            // }
             logger.info(`'/vcTimeout add' was called by ${interaction.user.tag} on ${member.displayName}`)
             member.roles.remove(role)
-            interaction.reply({ content: `Successfully removed ${member.displayName} from timeout`})
+            const embed = createModLogEmbed("Voice Chat", `${member.displayName} has been removed from time out`, interaction.user, interaction.createdTimestamp, member.displayAvatarURL())
+            await interaction.reply({ content: `Successfully removed ${member.displayName} from timeout`, flags: MessageFlags.Ephemeral });
+            await modLogChannel.send({ embeds: [embed]})
         }else if (interaction.options.getSubcommand() === 'check'){
             logger.info(`'/vcTimeout check' was called by ${interaction.user.tag} on ${member.displayName}`)
             if (member.roles.cache.has(config.vcMuteRoleID)){
-                interaction.reply({ content: `${member.displayName} is timed out`, flags: MessageFlags.Ephemeral})
+                await interaction.reply({ content: `${member.displayName} is timed out`, flags: MessageFlags.Ephemeral})
             } else {
-                interaction.reply({ content: `${member.displayName} is not timed out`, flags: MessageFlags.Ephemeral})
+                await interaction.reply({ content: `${member.displayName} is not timed out`, flags: MessageFlags.Ephemeral})
             }
         }
     },
