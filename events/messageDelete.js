@@ -86,7 +86,10 @@ module.exports = {
         let embed;
         if (deleter) {
             embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown'} deleted in #${message.channel?.name ?? 'Unknown'} by ${deleter.tag}`, message.content || 'Unknown', deleter, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name)
-        } 
+        } else {
+            if (message.author?.tag ?? 'Unknown' != "Unknown" && message.author?.tag == )
+            embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown' } deleted in #${message.channel?.name ?? 'Unknown2'} by ${message.author?.tag ?? 'Unknown'}`, message.content || '**Message is too old, no data found**', message.author, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name)
+        }
         await modLogChannel.send({embeds: [embed], files, components})
     } catch (error) {
         logger.error(`Failed to send message delete mod log: ${error.stack || error}`);
