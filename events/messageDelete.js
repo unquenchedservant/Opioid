@@ -2,6 +2,7 @@ const { Events, AuditLogEvent, ActionRowBuilder, ButtonBuilder, ButtonStyle } = 
 const config = require('../utility/config');
 const { createModLogEmbed } = require('../utility/starboard');
 const { botDeletes } = require('../utility/botDeletes');
+const logger = require('../utility/logger');
 
 
 // entryId -> last seen count, used to detect grouped (bumped) entries
@@ -58,34 +59,38 @@ module.exports = {
       // Give Discord a moment to write the audit log entry
       await new Promise(r => setTimeout(r, 1000));
 
-      const logs = await message.guild.fetchAuditLogs({
-        type: AuditLogEvent.MessageDelete,
-        limit: 6,
-      });
+      try {
+        const logs = await message.guild.fetchAuditLogs({
+            type: AuditLogEvent.MessageDelete,
+            limit: 6,
+        });
 
-      for (const entry of logs.entries.values()) {
-        const sameTarget  = entry.target?.id === message.author?.id;
-        const sameChannel = entry.extra?.channel?.id === message.channelId;
-        const prev        = seenCounts.get(entry.id);
-        const isFresh     = Date.now() - entry.createdTimestamp < 5000;
-        const bumped      = prev !== undefined && entry.extra.count > prev;
-        seenCounts.set(entry.id, entry.extra.count);
+        for (const entry of logs.entries.values()) {
+            const sameTarget  = entry.target?.id === message.author?.id;
+            const sameChannel = entry.extra?.channel?.id === message.channelId;
+            const prev        = seenCounts.get(entry.id);
+            const isFresh     = Date.now() - entry.createdTimestamp < 5000;
+            const bumped      = prev !== undefined && entry.extra.count > prev;
+            seenCounts.set(entry.id, entry.extra.count);
 
-        if (sameTarget && sameChannel && (isFresh || bumped)) {
-          deleter = entry.executor;
-          break;
+            if (sameTarget && sameChannel && (isFresh || bumped)) {
+            deleter = entry.executor;
+            break;
+            }
         }
-      }
+    } catch (error) {
+        logger.error(`Failed to fetch audit logs for message delete: ${error.stack || error}`);
     }
-
-    if (deleter) {
-      const modLogChannel = await message.guild.channels.fetch(config.modLogs)
-      const embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown'} deleted in #${message.channel?.name ?? 'Unknown'} by ${deleter.tag}`, message.content || 'Unknown', deleter, Date.now(), message.author.displayAvatarURL(), files[0]?.name)
-      await modLogChannel.send({embeds: [embed], files, components})
-    } else {
-      const modLogChannel = await message.guild.channels.fetch(config.modLogs)
-      const embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown' } deleted in #${message.channel?.name ?? 'Unknown2'} by ${message.author?.tag ?? 'Unknown'}`, message.content || '**Message is too old, no data found**', message.author, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name)
-      await modLogChannel.send({embeds: [embed], files, components})
+    try {
+        const modLogChannel = await message.guild.channels.fetch(config.modLogs);
+        let embed;
+        if (deleter) {
+            embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown'} deleted in #${message.channel?.name ?? 'Unknown'} by ${deleter.tag}`, message.content || 'Unknown', deleter, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name)
+        } 
+        await modLogChannel.send({embeds: [embed], files, components})
+    } catch (error) {
+        logger.error(`Failed to send message delete mod log: ${error.stack || error}`);
     }
-  },
+  }
+},
 };
