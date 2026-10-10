@@ -8,50 +8,52 @@ const logger = require('./utility/logger');
 
 dotenv.config();
 
-const token = process.env.DISCORD_TOKEN;
-const clientId = process.env.CLIENT_ID;
-const guildId = process.env.GUILD_ID;
+// index.js also calls deployCommands() on startup, since the host's startup command
+// only runs index.js. Running this file directly (npm run deploy) still works too.
+async function deployCommands() {
+  const token = process.env.DISCORD_TOKEN;
+  const clientId = process.env.CLIENT_ID;
+  const guildId = process.env.GUILD_ID;
 
-const commands = [];
+  const commands = [];
 
-const foldersPath = path.join(__dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
+  const foldersPath = path.join(__dirname, 'commands');
+  const commandFolders = fs.readdirSync(foldersPath);
 
-for (const folder of commandFolders) {
-  const commandsPath = path.join(foldersPath, folder);
-  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+  for (const folder of commandFolders) {
+    const commandsPath = path.join(foldersPath, folder);
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
-    if ('data' in command && 'execute' in command) {
-      if (command.data.toJSON) {
-        commands.push(command.data.toJSON());
-      }
-      else if (command.data.slash) {
-        commands.push(command.data.slash);
-        if (command.data.context) {
-          commands.push(command.data.context);
+    for (const file of commandFiles) {
+      const filePath = path.join(commandsPath, file);
+      const command = require(filePath);
+      if ('data' in command && 'execute' in command) {
+        if (command.data.toJSON) {
+          commands.push(command.data.toJSON());
+        }
+        else if (command.data.slash) {
+          commands.push(command.data.slash);
+          if (command.data.context) {
+            commands.push(command.data.context);
+          }
+        }
+        else {
+          commands.push(command.data);
         }
       }
       else {
-        commands.push(command.data);
+        logger.info(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
       }
     }
-    else {
-      logger.info(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-    }
+
   }
+  logger.info('Deploying commands:');
+  commands.forEach(cmd => {
+    logger.info(`- ${cmd.name} (${cmd.type})`);
+  });
 
-}
-logger.info('Deploying commands:');
-commands.forEach(cmd => {
-  logger.info(`- ${cmd.name} (${cmd.type})`);
-});
+  const rest = new REST().setToken(token);
 
-const rest = new REST().setToken(token);
-
-(async () => {
   try {
     logger.info(`Started refreshing ${commands.length} application (/).`);
 
@@ -65,4 +67,10 @@ const rest = new REST().setToken(token);
   catch (error) {
     logger.error(error);
   }
-})();
+}
+
+if (require.main === module) {
+  deployCommands();
+}
+
+module.exports = { deployCommands };

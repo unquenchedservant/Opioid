@@ -61,39 +61,42 @@ module.exports = {
 
       try {
         const logs = await message.guild.fetchAuditLogs({
-            type: AuditLogEvent.MessageDelete,
-            limit: 6,
+          type: AuditLogEvent.MessageDelete,
+          limit: 6,
         });
 
         for (const entry of logs.entries.values()) {
-            const sameTarget  = entry.target?.id === message.author?.id;
-            const sameChannel = entry.extra?.channel?.id === message.channelId;
-            const prev        = seenCounts.get(entry.id);
-            const isFresh     = Date.now() - entry.createdTimestamp < 5000;
-            const bumped      = prev !== undefined && entry.extra.count > prev;
-            seenCounts.set(entry.id, entry.extra.count);
+          const sameTarget  = entry.target?.id === message.author?.id;
+          const sameChannel = entry.extra?.channel?.id === message.channelId;
+          const prev        = seenCounts.get(entry.id);
+          const isFresh     = Date.now() - entry.createdTimestamp < 5000;
+          const bumped      = prev !== undefined && entry.extra.count > prev;
+          seenCounts.set(entry.id, entry.extra.count);
 
-            if (sameTarget && sameChannel && (isFresh || bumped)) {
+          if (sameTarget && sameChannel && (isFresh || bumped)) {
             deleter = entry.executor;
             break;
-            }
+          }
         }
-    } catch (error) {
+      }
+      catch (error) {
         logger.error(`Failed to fetch audit logs for message delete: ${error.stack || error}`);
+      }
     }
+
     try {
-        const modLogChannel = await message.guild.channels.fetch(config.modLogs);
-        let embed;
-        if (deleter) {
-            embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown'} deleted in #${message.channel?.name ?? 'Unknown'} by ${deleter.tag}`, message.content || 'Unknown', deleter, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name)
-        } else {
-            if (message.author?.tag ?? 'Unknown' != "Unknown" && message.author?.tag == )
-            embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown' } deleted in #${message.channel?.name ?? 'Unknown2'} by ${message.author?.tag ?? 'Unknown'}`, message.content || '**Message is too old, no data found**', message.author, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name)
-        }
-        await modLogChannel.send({embeds: [embed], files, components})
-    } catch (error) {
-        logger.error(`Failed to send message delete mod log: ${error.stack || error}`);
+      const modLogChannel = await message.guild.channels.fetch(config.modLogs);
+      let embed;
+      if (deleter) {
+        embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown'} deleted in #${message.channel?.name ?? 'Unknown'} by ${deleter.tag}`, message.content || 'Unknown', deleter, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name);
+      }
+      else {
+        embed = createModLogEmbed(`Message from ${message.author?.tag ?? 'Unknown' } deleted in #${message.channel?.name ?? 'Unknown2'} by ${message.author?.tag ?? 'Unknown'}`, message.content || '**Message is too old, no data found**', message.author, Date.now(), message.author?.displayAvatarURL() ?? null, files[0]?.name);
+      }
+      await modLogChannel.send({ embeds: [embed], files, components });
     }
-  }
-},
+    catch (error) {
+      logger.error(`Failed to send message delete mod log: ${error.stack || error}`);
+    }
+  },
 };

@@ -3,6 +3,7 @@ validateEnv(); // If env variables are missing, throw an informative error and e
 const fs = require('node:fs');
 const path = require('node:path');
 const db = require('./db/database');
+const { deployCommands } = require('./deploy-commands');
 
 const logger = require('./utility/logger');
 
@@ -65,7 +66,9 @@ for (const file of eventFiles) {
   }
 }
 
-client.login(token);
+// The host's startup command only runs index.js, so register slash commands here.
+// deployCommands() logs its own errors, so a failed deploy won't stop the bot from logging in.
+deployCommands().finally(() => client.login(token));
 
 // Graceful shutdown: close Discord client and DB on signals/errors
 async function gracefulShutdown(code = 0) {
