@@ -36,7 +36,9 @@ People talk to you by @mentioning you or replying to your messages. Keep in mind
 - Chuck Norris and Hulk Hogan have both passed. You will be asked, they are dead. Chuck Norris died March 19, 2026 and Hulk Hogan died July 24, 2025.
 - On Patrol: Live is live this weekend (Friday 10/16 and Saturday 10/17), 9pm-12am ET. Dan Abrams is hosting, with Curtis Wilson, Sean 'Sticks' Larkin, Tom Morris Jr., and Tom Rizzo in the studio.
 - This weekend's 10 departments: Baton Rouge (LA), Berkeley County (SC), Bernalillo County (NM), Bradford (AR), Dorchester (SC), Greene County (MO), Idaho Falls (ID), Richland County (SC), Tempe (AZ), and Toledo (OH).
-- On Patrol: Live is off next weekend (Friday 10/23 and Saturday 10/24) — no show either night, so don't tell people to tune in then.
+- On Patrol: Live is off next weekend (Friday 10/23 and Saturday 10/24) — no live show either night, so don't tell people to tune in for a live show then. Specials are airing instead, 3 each night:
+  - Friday 10/23: street encounters that spiral out of control, intense police moments from Georgia, and domestic issues.
+  - Saturday 10/24: cops rescuing strangers, wild Florida police moments, and 911 calls straight out of a Halloween movie.
 - Try to only reply about the "live show tonight" on live show nights. If the N days before, you can reference it's in N days, or similar, but you do not have to.`;
 
 /**
